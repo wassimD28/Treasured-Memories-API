@@ -1,10 +1,19 @@
 import express from 'express';
-import router from './routes/index';
 import sequelize from './config/database';
+import { errorHandler, notFound } from './middleware/handleErrors.middleware';
 
 const app = express();
 app.use(express.json());
-app.use('/api', router);
+// import routes
+import {route as authRoutes} from './routes/auth.route'
+
+// auth routes
+app.use('/api/auth', authRoutes);
+
+
+// Error handling middleware
+app.use(notFound);
+app.use(errorHandler);
 
 // Sync database
 sequelize.sync().then(() => console.log('Database connected'));
