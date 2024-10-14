@@ -48,14 +48,13 @@ const loginController = expressAsyncHandler(
       await RefreshToken.create({
         user_id: user.id,
         token: refreshToken,
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
       });
       res.status(200).json({
         message: "Login successful",
         data: {
           user: {
             id: user.id,
-            username: user.username,
-            email: user.email,
             roles: user.roles,
           },
           tokens: {
@@ -85,7 +84,9 @@ const logoutController = expressAsyncHandler(
       return;
     }
     // Check if the refresh token exists in the database
-    const tokenExists = await RefreshToken.findOne({ where: { token: refreshToken } });
+    const tokenExists = await RefreshToken.findOne({
+      where: { token: refreshToken },
+    });
 
     if (!tokenExists) {
       res
@@ -109,40 +110,74 @@ const logoutController = expressAsyncHandler(
 const refreshTokenController = expressAsyncHandler(
   async (req: Request, res: Response) => {
     const refreshToken = req.body.refreshToken;
-    // Return if the refresh token is not provided
+
     if (!refreshToken) {
       res.status(401).json({ message: "No token provided" });
       return;
     }
 
-    // Check if the refresh token exists in the database
-    RefreshToken.findOne({ where: { token: refreshToken } }).then((token) => {
-      if (!token) {
+    try {
+      // find the refresh token and store it in variable
+      const storedToken = await RefreshToken.findOne({
+        where: { token: refreshToken },
+      });
+
+      if (!storedToken) {
         res.status(403).json({ message: "Invalid refresh token" });
         return;
       }
-      // Check if the refresh token is valid
-      jwt.verify(
+
+      // Check if the token has expired using the expires_at property
+      if (new Date() > storedToken.expires_at) {
+        await storedToken.destroy(); // Remove the expired token
+        res.status(403).json({ message: "Refresh token has expired" });
+        return;
+      }
+
+      const decoded = jwt.verify(
         refreshToken,
+        process.env.REFRESH_TOKEN_SECRET as string
+      ) as { userId: number };
+      const user = await User.findOne({ where: { id: decoded.userId } });
+
+      if (!user) {
+        res.status(404).json({ message: "User not found" });
+        return;
+      }
+
+      // Generate new access token
+      const accessToken = generateAccessToken(user);
+
+      // Implement token rotation: generate a new refresh token
+      const newRefreshToken = jwt.sign(
+        { userId: user.id },
         process.env.REFRESH_TOKEN_SECRET as string,
-        async (err: any, decoded: any) => {
-          // Return if the token is invalid or expired
-          if (err)
-            return res
-              .status(403)
-              .json({ message: "Invalid or expired token" });
-          const user = await User.findOne({ where: { id: decoded.userId } });
-          // Return if the token's user is not found
-          if (!user) {
-            res.status(404).json({ message: "User not found" });
-            return;
-          }
-          // If the user is found, create a new access token for him
-          const accessToken = generateAccessToken(user);
-          res.json({ accessToken });
-        }
+        { expiresIn: "7d" }
       );
-    });
+
+      // Update the stored refresh token
+      await storedToken.update({
+        token: newRefreshToken,
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      });
+
+      res.json({
+        message: "Token refreshed successfully",
+        data: {
+          user: {
+            id: user.id,
+            roles: user.roles,
+          },
+          tokens: {
+            accessToken,
+            refreshToken: newRefreshToken,
+          },
+        },
+      });
+    } catch (error) {
+      console.error("Error during token refresh:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   }
 );
 

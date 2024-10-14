@@ -4,7 +4,7 @@ import sequelize from "../config/database";
 class RefreshToken extends Model {
   public id!: number;
   public token!: string;
-  public expires_at!: string;
+  public expires_at!: Date;
   public user_id!: number; // Foreign key to User
 }
 
