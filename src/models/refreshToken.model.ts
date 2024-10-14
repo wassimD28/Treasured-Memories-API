@@ -1,14 +1,14 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database";
-import User from "./user.model";
 
-class Token extends Model {
+class RefreshToken extends Model {
   public id!: number;
   public token!: string;
+  public expires_at!: string;
   public user_id!: number; // Foreign key to User
 }
 
-Token.init(
+RefreshToken.init(
   {
     id: {
       type: DataTypes.INTEGER.UNSIGNED,
@@ -20,6 +20,10 @@ Token.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    expires_at: {
+      type: DataTypes.DATE,
+      allowNull: false,
+    },
     // the foreign key
     user_id: {
       type: DataTypes.INTEGER.UNSIGNED,
@@ -28,9 +32,9 @@ Token.init(
   },
   {
     sequelize,
-    tableName: "tokens",
+    tableName: "refreshTokens",
   }
 );
 
 
-export default Token;
+export default RefreshToken;

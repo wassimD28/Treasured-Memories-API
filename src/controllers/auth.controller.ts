@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import bcrypt from "bcrypt";
 import User from "../models/user.model";
-import Token from "../models/token.model";
+import RefreshToken from "../models/refreshToken.model";
 import { generateAccessToken, generateRefreshToken } from "../utils/auth.util";
 import jwt from "jsonwebtoken";
 
@@ -45,7 +45,7 @@ const loginController = expressAsyncHandler(
     if (isMatch) {
       const accessToken = generateAccessToken(user);
       const refreshToken = generateRefreshToken(user);
-      await Token.create({
+      await RefreshToken.create({
         user_id: user.id,
         token: refreshToken,
       });
@@ -85,15 +85,17 @@ const logoutController = expressAsyncHandler(
       return;
     }
     // Check if the refresh token exists in the database
-    const tokenExists = await Token.findOne({ where: { token: refreshToken } });
+    const tokenExists = await RefreshToken.findOne({ where: { token: refreshToken } });
 
     if (!tokenExists) {
-      res.status(404).json({ message: "Refresh token not found or already invalidated" });
+      res
+        .status(404)
+        .json({ message: "Refresh token not found or already invalidated" });
       return;
     }
 
     // Deleting the refresh token
-    await Token.destroy({ where: { token: refreshToken } });
+    await RefreshToken.destroy({ where: { token: refreshToken } });
     res.json({ message: "Logged out successfully" });
   }
 );
@@ -114,7 +116,7 @@ const refreshTokenController = expressAsyncHandler(
     }
 
     // Check if the refresh token exists in the database
-    Token.findOne({ where: { token: refreshToken } }).then((token) => {
+    RefreshToken.findOne({ where: { token: refreshToken } }).then((token) => {
       if (!token) {
         res.status(403).json({ message: "Invalid refresh token" });
         return;
@@ -143,9 +145,6 @@ const refreshTokenController = expressAsyncHandler(
     });
   }
 );
-
-
-
 
 export {
   loginController,

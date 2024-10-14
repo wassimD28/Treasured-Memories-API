@@ -1,6 +1,6 @@
-import { DataTypes, Model } from 'sequelize';
-import sequelize from '../config/database';
-import Token from './token.model';
+import { DataTypes, Model } from "sequelize";
+import sequelize from "../config/database";
+import Token from "./refreshToken.model";
 
 class User extends Model {
   public id!: number;
@@ -39,11 +39,11 @@ User.init(
     roles: {
       type: DataTypes.JSON,
       allowNull: true,
-    }
+    },
   },
   {
     sequelize,
-    tableName: 'users',
+    tableName: "users",
   }
 );
 
