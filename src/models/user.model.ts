@@ -8,6 +8,8 @@ class User extends Model {
   public email!: string;
   public password!: string;
   public roles!: string[];
+  public createdAt!: Date;
+  public updatedAt!: Date;
 
   static associate() {
     User.hasMany(Token, { foreignKey: "user_id" });
@@ -37,8 +39,15 @@ User.init(
       allowNull: false,
     },
     roles: {
-      type: DataTypes.JSON,
-      allowNull: true,
+      type: DataTypes.ARRAY(DataTypes.STRING), // Store roles as an array of strings
+      allowNull: false,
+      defaultValue: ["USER"], // Default role for a new user
+      validate: {
+        isIn: {
+          args: [["ADMIN", "USER", "MODERATOR"]], // Valid roles
+          msg: "Invalid role",
+        },
+      },
     },
   },
   {
