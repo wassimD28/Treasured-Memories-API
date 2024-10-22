@@ -1,11 +1,10 @@
 import { Router } from "express";
-import { handleValidations } from "../middleware/handleValidations.middleware";
 import {
   deleteUserController,
   getUserByIdController,
 } from "../controllers/user.controller";
 import { authenticateToken } from "../middleware/authenticateToken.middleware";
-import { isOwner } from "../middleware/isOwner.middleware";
+import { isOwnerOrAdmin } from "../middleware/isOwnerOrAdmin.middleware";
 
 const route = Router();
 
@@ -13,6 +12,6 @@ const route = Router();
 route.get("/:id", authenticateToken, getUserByIdController);
 
 // delete user
-route.post("/:id", authenticateToken, isOwner, deleteUserController);
+route.delete("/:id", authenticateToken, isOwnerOrAdmin, deleteUserController);
 
 export { route };

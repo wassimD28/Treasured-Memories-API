@@ -6,9 +6,10 @@ import { DecodedToken } from "../interfaces/decodedToken.interface";
 // Extend the Express Request type to include our auth property
 declare global {
   namespace Express {
-    interface Request {
-      auth?: DecodedToken;
-    }
+      interface Request {
+          auth?: DecodedToken;
+        
+      }
   }
 }
 

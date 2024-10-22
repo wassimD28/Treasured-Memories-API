@@ -8,9 +8,10 @@ const handleValidations = (
 ): void => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    res.status(400).json({ errors: errors.array() });
+    res.status(400).json({ errors: errors.array({onlyFirstError: true})[0]});
     return;
   }
+  
   next();
 };
 

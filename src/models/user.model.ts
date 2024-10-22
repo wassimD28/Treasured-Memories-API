@@ -1,6 +1,8 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database";
 import Token from "./refreshToken.model";
+import Memory from "./memory.model";
+import Location from "./location.model";
 
 class User extends Model {
   public id!: number;
@@ -13,6 +15,8 @@ class User extends Model {
 
   static associate() {
     User.hasMany(Token, { foreignKey: "user_id" });
+    User.hasMany(Memory, { foreignKey: "user_id" })
+    User.hasMany(Location, { foreignKey: "user_id"});
   }
 }
 
@@ -39,7 +43,7 @@ User.init(
       allowNull: false,
     },
     roles: {
-      type: DataTypes.ARRAY(DataTypes.STRING), // Store roles as an array of strings
+      type: DataTypes.JSON,
       allowNull: false,
       defaultValue: ["USER"], // Default role for a new user
       validate: {
