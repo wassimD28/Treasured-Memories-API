@@ -1,5 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database";
+import Location from "./location.model";
 
 class Memory extends Model {
   public id!: number;
@@ -11,6 +12,7 @@ class Memory extends Model {
   public location_id!: number; // Foreign key to location
   public createdAt!: Date;
   public updatedAt!: Date;
+  
 }
 Memory.init(
   {
@@ -30,10 +32,6 @@ Memory.init(
     },
     images: {
       type: DataTypes.JSON,
-      allowNull: true,
-    },
-    wallImage: {
-      type: DataTypes.STRING,
       allowNull: true,
     },
     user_id: {
@@ -58,5 +56,6 @@ Memory.init(
     tableName: "memories",
   }
 );
-
+// Add this line to set up the association in the Memory model
+Memory.belongsTo(Location, { foreignKey: "location_id" });
 export default Memory;

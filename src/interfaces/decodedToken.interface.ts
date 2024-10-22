@@ -1,8 +1,7 @@
+import { ModelTypeName } from "../Enums/common.enum";
+
 export interface DecodedToken {
   userId: string;
-  username?: string;
-  email?: string;
   roles?: string[];
-  iat?: number;
-  exp?: number;
+  entityEeq?: ModelTypeName;
 }

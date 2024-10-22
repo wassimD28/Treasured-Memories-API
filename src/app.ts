@@ -2,6 +2,7 @@ import express from 'express';
 import sequelize from './config/database';
 import { errorHandler, notFound } from './middleware/errorHandler.middleware';
 import path from 'path';
+import cors from 'cors';
 // import routes
 import {route as authRoutes} from './routes/auth.route'
 import {route as userRoutes} from './routes/user.route'
@@ -10,6 +11,7 @@ import {route as uploadRoutes} from './routes/upload.route'
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 // Serve static files for uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
