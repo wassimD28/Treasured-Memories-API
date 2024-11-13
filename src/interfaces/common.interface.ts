@@ -11,3 +11,12 @@ export interface MemoryPayload {
   images : string[];
   wallImage : string;
 }
+
+export interface ProfilePayload {
+  firstName : string;
+  lastName : string;
+  address : string;
+  gender : string;
+  birthday : Date;
+  bio : string;
+}

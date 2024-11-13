@@ -1,3 +1,4 @@
 {
-  "cSpell.words": ["WALLIMAGE"]
+  "cSpell.words": ["WALLIMAGE"],
+  "dotnet.defaultSolution": "Notes.sln"
 }

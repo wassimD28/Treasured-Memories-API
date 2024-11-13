@@ -9,10 +9,6 @@ class Location extends Model {
   public user_id!: number; // foreign key to user
   public createdAt!: Date;
   public updatedAt!: Date;
-
-  static associate() {
-    Location.hasMany(Memory, { foreignKey: "location_id" });
-  }
 }
 
 Location.init(

@@ -5,6 +5,7 @@ import User from "../models/user.model";
 import RefreshToken from "../models/refreshToken.model";
 import { generateAccessToken, generateRefreshToken } from "../utils/auth.util";
 import jwt from "jsonwebtoken";
+import Profile from "../models/profile.model";
 
 /**
  * @description user register
@@ -16,11 +17,12 @@ import jwt from "jsonwebtoken";
 const registerController = expressAsyncHandler(
   async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    await User.create({
+    const user = await User.create({
       username: req.body.username,
       email: req.body.email,
       password: hashedPassword,
     });
+    await Profile.create({user_id: user.id})
     res.status(201).json({
       message: "User registered successfully",
     });

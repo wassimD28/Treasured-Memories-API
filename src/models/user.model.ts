@@ -3,6 +3,7 @@ import sequelize from "../config/database";
 import Token from "./refreshToken.model";
 import Memory from "./memory.model";
 import Location from "./location.model";
+import Profile from "./profile.model";
 
 class User extends Model {
   public id!: number;
@@ -10,14 +11,9 @@ class User extends Model {
   public email!: string;
   public password!: string;
   public roles!: string[];
+  public profile?: Profile;
   public createdAt!: Date;
   public updatedAt!: Date;
-
-  static associate() {
-    User.hasMany(Token, { foreignKey: "user_id" });
-    User.hasMany(Memory, { foreignKey: "user_id" })
-    User.hasMany(Location, { foreignKey: "user_id"});
-  }
 }
 
 User.init(
@@ -59,8 +55,5 @@ User.init(
     tableName: "users",
   }
 );
-
-// Call the associate method
-User.associate();
 
 export default User;

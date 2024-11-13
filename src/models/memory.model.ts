@@ -56,6 +56,5 @@ Memory.init(
     tableName: "memories",
   }
 );
-// Add this line to set up the association in the Memory model
-Memory.belongsTo(Location, { foreignKey: "location_id" });
+
 export default Memory;

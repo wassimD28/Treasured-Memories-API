@@ -11,9 +11,10 @@ import {
   updateMemoryController,
 } from "../controllers/memory.controller";
 import { authenticateToken } from "../middleware/authenticateToken.middleware";
-import { setEntityRequest } from "../middleware/setEnityReq.meddleware";
+import { setEntityRequest } from "../middleware/setEntityReq.middleware";
 import { ModelTypeName } from "../Enums/common.enum";
-import { isEntityOwner } from "../middleware/isEnitityOwner.middleware";
+import { isOwnerOrAdmin } from "../middleware/isOwnerOrAdmin.middleware";
+import { isOwner } from "../middleware/isOwner.middleware";
 
 const upload = multer();
 
@@ -38,7 +39,7 @@ route.put(
   "/:id",
   authenticateToken,
   setEntityRequest(ModelTypeName.MEMORY),
-  isEntityOwner,
+  isOwner,
   updateMemoryController
 );
 
@@ -47,7 +48,7 @@ route.delete(
   "/:id",
   authenticateToken,
   setEntityRequest(ModelTypeName.MEMORY),
-  isEntityOwner,
+  isOwnerOrAdmin,
   deleteMemoryController
 );
 
