@@ -34,13 +34,8 @@ export const isOwnerOrAdmin = async (
       res.status(400).json({ message: "Invalid entity type" });
       return;
   }
-  // todo
   // check if the entity exists
   entityExists = entityExists ?? (await Entity.findByPk(entity_id));
-  console.log('entityExists :'+ entityExists.id);
-  console.log('entityExists.user_id :'+ entityExists.user_id);
-  console.log("authenticatedUser id :" + req.auth?.userId);
-  console.log("authenticatedUser roles :" + req.auth?.roles);
   if (!entityExists) {
     res.status(404).json({ message: `${entityName} entity not found` });
     return;

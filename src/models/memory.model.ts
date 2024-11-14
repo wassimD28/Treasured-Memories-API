@@ -6,6 +6,8 @@ class Memory extends Model {
   public id!: number;
   public title!: string;
   public description!: string | null;
+  public likeCounter!: number;
+  public commentCounter!: number;
   public images!: string | null;
   public wallImage!: string | null;
   public user_id!: number; // Foreign key to User
@@ -33,6 +35,18 @@ Memory.init(
     images: {
       type: DataTypes.JSON,
       allowNull: true,
+    },
+    // like counter
+    likeCounter:{
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+      defaultValue: 0
+    },
+    // comment counter
+    commentCounter:{
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+      defaultValue: 0
     },
     user_id: {
       type: DataTypes.INTEGER.UNSIGNED,

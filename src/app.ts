@@ -9,6 +9,9 @@ import {route as userRoutes} from './routes/user.route'
 import {route as memoryRoutes} from './routes/memory.route'
 import {route as uploadRoutes} from './routes/upload.route'
 import {route as profileRoutes} from './routes/profile.route'
+import {route as likeRoutes} from './routes/like.route'
+import {route as commentRoutes} from './routes/comment.route'
+import {route as notificationRoutes} from './routes/notification.route'
 // Import setupAssociations
 import setupAssociations from './models/associations';
 
@@ -45,6 +48,9 @@ app.use('/api/user', userRoutes);
 app.use('/api/memory', memoryRoutes); 
 app.use('/api/upload', uploadRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/like', likeRoutes);
+app.use('/api/comment', commentRoutes);
+app.use('/api/notification', notificationRoutes);
 
 // Error handling middleware
 app.use(notFound);

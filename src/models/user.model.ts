@@ -1,9 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database";
-import Token from "./refreshToken.model";
-import Memory from "./memory.model";
-import Location from "./location.model";
-import Profile from "./profile.model";
+
 
 class User extends Model {
   public id!: number;
@@ -11,7 +8,7 @@ class User extends Model {
   public email!: string;
   public password!: string;
   public roles!: string[];
-  public profile?: Profile;
+  public notificationCounter!: number;
   public createdAt!: Date;
   public updatedAt!: Date;
 }
@@ -48,6 +45,11 @@ User.init(
           msg: "Invalid role",
         },
       },
+    },
+    notificationCounter: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      defaultValue: 0,
+      allowNull: false,
     },
   },
   {
