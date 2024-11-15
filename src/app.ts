@@ -12,6 +12,7 @@ import {route as profileRoutes} from './routes/profile.route'
 import {route as likeRoutes} from './routes/like.route'
 import {route as commentRoutes} from './routes/comment.route'
 import {route as notificationRoutes} from './routes/notification.route'
+import {route as followersRoutes} from './routes/follower.route'
 // Import setupAssociations
 import setupAssociations from './models/associations';
 
@@ -51,6 +52,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/like', likeRoutes);
 app.use('/api/comment', commentRoutes);
 app.use('/api/notification', notificationRoutes);
+app.use('/api/follower', followersRoutes);
 
 // Error handling middleware
 app.use(notFound);

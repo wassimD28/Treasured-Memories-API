@@ -9,6 +9,8 @@ class User extends Model {
   public password!: string;
   public roles!: string[];
   public notificationCounter!: number;
+  public followersCounter !: number
+  public followingsCounter!: number;
   public createdAt!: Date;
   public updatedAt!: Date;
 }
@@ -47,6 +49,16 @@ User.init(
       },
     },
     notificationCounter: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      defaultValue: 0,
+      allowNull: false,
+    },
+    followersCounter: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      defaultValue: 0,
+      allowNull: false,
+    },
+    followingsCounter: {
       type: DataTypes.INTEGER.UNSIGNED,
       defaultValue: 0,
       allowNull: false,

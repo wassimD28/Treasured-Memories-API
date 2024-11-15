@@ -1,4 +1,5 @@
 import Comment from "./comment.model";
+import Follower from "./follower.model";
 import Like from "./like.model";
 import Location from "./location.model";
 import Memory from "./memory.model";
@@ -32,4 +33,19 @@ export default function setupAssociations() {
   Comment.belongsTo(Memory, { foreignKey: "memory_id" });
   // Notification
   Notification.belongsTo(User, { foreignKey: "user_id" });
+
+  // Follower-following relationship
+  User.belongsToMany(User, {
+    through: Follower,
+    as: "followers", // Users who follow this user
+    foreignKey: "followingId",
+    otherKey: "followerId",
+  });
+
+  User.belongsToMany(User, {
+    through: Follower,
+    as: "followings", // Users whom this user follows
+    foreignKey: "followerId",
+    otherKey: "followingId",
+  });
 }

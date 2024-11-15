@@ -38,7 +38,7 @@ Notification.init(
     },
     source_id: {
       type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false,
+      allowNull: true,
     },
     type: {
       type: DataTypes.ENUM, 
