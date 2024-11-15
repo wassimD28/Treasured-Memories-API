@@ -9,7 +9,7 @@ import { NotificationTapeName } from "../Enums/common.enum";
 /**
  * Adds a new follower to the user via user_id and followed_id.
  * @method POST
- * @route /api/follow/:id/:followed_id
+ * @route /api/follower/:id/:followed_id
  * @access private
  */
 
@@ -79,8 +79,8 @@ export const addFollow = expressAsyncHandler(
 
 /**
  * remove an existing follower from the user via user_id and followed_id.
- * @method POST
- * @route /api/follow/:id/:followed_id
+ * @method DELETE
+ * @route /api/follower/:id/:followed_id
  * @access private
  */
 

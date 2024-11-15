@@ -6,6 +6,7 @@ import Profile from "../models/profile.model";
 import Comment from "../models/comment.model";
 import Notification from "../models/notification.model";
 import { ApiResponse } from "../interfaces/common.interface";
+import Album from "../models/album.model";
 
 export const isOwner = async (
   req: Request,
@@ -20,6 +21,9 @@ export const isOwner = async (
   }
   let Entity: any;
   switch (entityName) {
+    case ModelTypeName.ALBUM:
+      Entity = Album;
+      break;
     case ModelTypeName.MEMORY:
       Entity = Memory;
       break;

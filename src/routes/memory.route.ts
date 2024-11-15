@@ -8,6 +8,8 @@ import {
   deleteMemoryController,
   getMemoriesController,
   getMemoryByIdController,
+  linkMemoryWithAlbumController,
+  unlinkMemoryWithAlbumController,
   updateMemoryController,
 } from "../controllers/memory.controller";
 import { authenticateToken } from "../middleware/authenticateToken.middleware";
@@ -51,5 +53,24 @@ route.delete(
   isOwnerOrAdmin,
   deleteMemoryController
 );
+
+// link one specific memory with an album via memory_id and album_id
+route.post(
+  "/:id/album/:album_id",
+  authenticateToken,
+  setEntityRequest(ModelTypeName.MEMORY),
+  isOwner,
+  linkMemoryWithAlbumController
+);
+
+// unlink one specific memory with an album via memory_id and album_id
+
+route.delete(
+  "/:id/album/:album_id",
+  authenticateToken,
+  setEntityRequest(ModelTypeName.MEMORY),
+  isOwner,
+  unlinkMemoryWithAlbumController
+)
 
 export { route };

@@ -1,3 +1,5 @@
+import Album from "./album.model";
+import AlbumMemory from "./albumMemory.model";
 import Comment from "./comment.model";
 import Follower from "./follower.model";
 import Like from "./like.model";
@@ -47,5 +49,19 @@ export default function setupAssociations() {
     as: "followings", // Users whom this user follows
     foreignKey: "followerId",
     otherKey: "followingId",
+  });
+
+  // Album-Memory relationship
+  Album.belongsToMany(Memory, {
+    through: AlbumMemory,
+    as: "memories",
+    foreignKey: "album_id",
+    otherKey: "memory_id",
+  })
+  Memory.belongsToMany(Album, {
+    through: AlbumMemory,
+    as: "albums",
+    foreignKey: "memory_id",
+    otherKey: "album_id",
   });
 }

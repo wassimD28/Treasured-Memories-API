@@ -1,11 +1,14 @@
+import { response } from "express";
 // src/controllers/memory.controller.ts
 import { Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Memory from "../models/memory.model";
 import Location from "../models/location.model";
-import { LocationPayload } from "../interfaces/common.interface";
+import { ApiResponse, LocationPayload } from "../interfaces/common.interface";
 import { Model } from "sequelize";
 import User from "../models/user.model";
+import Album from "../models/album.model";
+import AlbumMemory from "../models/albumMemory.model";
 
 /**
  * @description Returns all user memories by his ID.
@@ -26,7 +29,7 @@ const getMemoriesController = expressAsyncHandler(
       res.status(404).json({ message: "User not found" });
       return;
     }
-    
+
     // Fetch user memories from the database using user_id
     const userMemories = await Memory.findAll({
       where: { user_id: user_id },
@@ -61,10 +64,12 @@ const getMemoryByIdController = expressAsyncHandler(
     // Check if entity exists
     const memoryExists = await Memory.findByPk(memory_id);
     if (!memoryExists) {
-      res.status(404).json({ message: `There is no such memory with id = ${memory_id}` });
+      res
+        .status(404)
+        .json({ message: `There is no such memory with id = ${memory_id}` });
       return;
     }
-    
+
     // Fetch user memory from the database using user_id and memory_id
     const userMemory = await Memory.findOne({
       where: { id: memory_id },
@@ -97,12 +102,11 @@ export const updateMemoryController = expressAsyncHandler(
     const memory_id = req.params.id;
     const { title, description } = req.body;
     // check body
-    if (!title ||!description) {
+    if (!title || !description) {
       res.status(400).json({ message: "Title and description are required." });
       return;
     }
-    
-    
+
     // check if memory id is specified
     if (!memory_id) {
       res.status(400).json({ message: "Missing memory_id parameter." });
@@ -111,10 +115,12 @@ export const updateMemoryController = expressAsyncHandler(
     // Check if entity exists
     const memoryExists = await Memory.findByPk(memory_id);
     if (!memoryExists) {
-      res.status(404).json({ message: `There is no such memory with id = ${memory_id}` });
+      res
+        .status(404)
+        .json({ message: `There is no such memory with id = ${memory_id}` });
       return;
     }
-    
+
     // update user memory
     const userMemory = await Memory.update(
       { title, description },
@@ -124,9 +130,9 @@ export const updateMemoryController = expressAsyncHandler(
       res.status(500).json({ message: "Failed to update memory" });
       return;
     }
-    
+
     // Return user memory in the response
-    res.status(200).json({ message: 'Memory has been updated successfully'});
+    res.status(200).json({ message: "Memory has been updated successfully" });
   }
 );
 
@@ -198,23 +204,178 @@ const createMemoryController = expressAsyncHandler(
  * @route /api/memory
  * @access public
  */
-export const deleteMemoryController = expressAsyncHandler(async (req:Request, res:Response) => {
-  const memory_id = req.params.id
-  // check if memory id is specified
-  if (!memory_id) {
-    res.status(400).json({ message: "Missing memory_id parameter." });
-    return;
-  }
-  // Check if entity exists
-  const memoryExists = await Memory.findByPk(memory_id);
-  if (!memoryExists) {
-    res.status(404).json({ message: `There is no such memory with id = ${memory_id}` });
-    return;
-  }
-  
-  // Delete memory
-  await memoryExists.destroy();
-  res.status(200).json({ message: "Memory deleted successfully" });
-})
+export const deleteMemoryController = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const memory_id = req.params.id;
+    // check if memory id is specified
+    if (!memory_id) {
+      res.status(400).json({ message: "Missing memory_id parameter." });
+      return;
+    }
+    // Check if entity exists
+    const memoryExists = await Memory.findByPk(memory_id);
+    if (!memoryExists) {
+      res
+        .status(404)
+        .json({ message: `There is no such memory with id = ${memory_id}` });
+      return;
+    }
 
-export { getMemoriesController, createMemoryController, getMemoryByIdController };
+    // Delete memory
+    await memoryExists.destroy();
+    res.status(200).json({ message: "Memory deleted successfully" });
+  }
+);
+
+/**
+ * link one specific memory with an album via memory_id and album_id
+ * @method POST
+ * @route /api/memory/:id/album/:album_id
+ * @access private
+ */
+export const linkMemoryWithAlbumController = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const memory_id = req.params.id;
+    const album_id = req.params.album_id;
+    let response: ApiResponse;
+    // check if memory id and album id are specified
+    if (!album_id) {
+      response = {
+        success: false,
+        message: "Album id is required.",
+      };
+      res.status(400).json(response);
+      return;
+    }
+    // Check if entity exists
+    const memoryExists = await Memory.findByPk(memory_id);
+    if (!memoryExists) {
+      response = {
+        success: false,
+        message: "Memory not found.",
+      };
+      res.status(404).json(response);
+      return;
+    }
+    // check if the album exists
+    const albumExists = await Album.findByPk(album_id);
+    if (!albumExists) {
+      response = {
+        success: false,
+        message: "Album not found.",
+      };
+      res.status(404).json(response);
+      return;
+    }
+    // check if the album belongs to the user
+    if (albumExists.user_id !== memoryExists.user_id) {
+      response = {
+        success: false,
+        message: "You do not have permission to access this album.",
+      };
+      res.status(403).json(response);
+      return;
+    }
+    // check if the memory already linked with the album
+    const memoryInAlbum = await AlbumMemory.findOne({
+      where: { memory_id, album_id },
+    });
+    if (memoryInAlbum) {
+      response = {
+        success: false,
+        message: "Memory is already linked with this album.",
+      };
+      res.status(400).json(response);
+      return;
+    }
+
+    
+    // link memory with album
+    await AlbumMemory.create({
+      memory_id,
+      album_id,
+    });
+    response = {
+      success: true,
+      message: "Memory has been linked with the album.",
+    };
+    res.status(200).json(response);
+  }
+);
+
+/**
+ * unlink one specific memory with an album via memory_id and album_id
+ * @method POST
+ * @route /api/memory/:id/album/:album_id
+ * @access private
+ */
+
+export const unlinkMemoryWithAlbumController = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const memory_id = req.params.id;
+    const album_id = req.params.album_id;
+    let response: ApiResponse;
+    // check if memory id and album id are specified
+    if (!album_id) {
+      response = {
+        success: false,
+        message: "Album id is required.",
+      };
+      res.status(400).json(response);
+      return;
+    }
+    // Check if entity exists
+    const memoryExists = await Memory.findByPk(memory_id);
+    if (!memoryExists) {
+      response = {
+        success: false,
+        message: "Memory not found.",
+      };
+      res.status(404).json(response);
+      return;
+    }
+    // check if the album exists
+    const albumExists = await Album.findByPk(album_id);
+    if (!albumExists) {
+      response = {
+        success: false,
+        message: "Album not found.",
+      };
+      res.status(404).json(response);
+      return;
+    }
+    // check if the album belongs to the user
+    if (albumExists.user_id!== memoryExists.user_id) {
+      response = {
+        success: false,
+        message: "You do not have permission to access this album.",
+      };
+      res.status(403).json(response);
+      return;
+    }
+    // check if the memory already linked with the album
+    const memoryInAlbum = await AlbumMemory.findOne({
+      where: { memory_id, album_id },
+    });
+    if (!memoryInAlbum) {
+      response = {
+        success: false,
+        message: "Memory is not linked with this album.",
+      };
+      res.status(400).json(response);
+      return;
+    }
+    // unlink memory with album
+    await memoryInAlbum.destroy();
+    response = {
+      success: true,
+      message: "Memory has been unlinked with the album.",
+    };
+    res.status(200).json(response);
+  })
+
+export {
+  getMemoriesController,
+  createMemoryController,
+  getMemoryByIdController,
+};
