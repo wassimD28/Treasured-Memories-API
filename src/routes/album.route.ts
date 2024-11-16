@@ -14,7 +14,7 @@ export const route = Router();
 
 // get all albums via user id
 route.get(
-  "/:id",
+  "/all/:id",
   authenticateToken,
   setEntityRequest(ModelTypeName.USER),
   isOwner,
@@ -24,7 +24,7 @@ route.get(
 // get specific album of a user via album id
 
 route.get(
-  "/:id",
+  "/single/:id",
   authenticateToken,
   setEntityRequest(ModelTypeName.ALBUM),
   isOwner,

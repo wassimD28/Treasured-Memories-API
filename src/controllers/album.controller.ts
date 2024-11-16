@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Album from "../models/album.model";
 import { ApiResponse } from "../interfaces/common.interface";
+import Memory from "../models/memory.model";
 
 /**
  * get all albums via user id.
@@ -32,17 +33,33 @@ export const getAllAlbumController = expressAsyncHandler(
 export const getSingleAlbumController = expressAsyncHandler(
   async (req: Request, res: Response) => {
     const album_id = req.params.id;
+    let response: ApiResponse;
     // check if album id is specified
     if (!album_id) {
       res.status(400).json({ message: "Missing album_id parameter." });
       return;
     }
-    const album = await Album.findByPk(album_id);
+    // check if album exists
+    const album = await Album.findByPk(album_id, {
+      include: {
+        model: Memory,
+        as: "memories", // Use the alias specified in the association
+        attributes: [
+          "id",
+          "title",
+          "description",
+          "images",
+          "createdAt",
+          "updatedAt",
+        ], // Specify attributes to retrieve
+        through: { attributes: [] }, // Exclude AlbumMemory attributes if not needed
+      },
+    });
     if (!album) {
       res.status(404).json({ message: "Album not found." });
       return;
     }
-    const response: ApiResponse = {
+    response = {
       success: true,
       message: "Album fetched successfully",
       data: album,

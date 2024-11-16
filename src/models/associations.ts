@@ -8,6 +8,7 @@ import Memory from "./memory.model";
 import Notification from "./notification.model";
 import Profile from "./profile.model";
 import RefreshToken from "./refreshToken.model";
+import Report from "./report.model";
 import User from "./user.model";
 
 export default function setupAssociations() {
@@ -19,6 +20,7 @@ export default function setupAssociations() {
   User.hasMany(Like, { foreignKey: "user_id" });
   User.hasMany(Comment, { foreignKey: "user_id" });
   User.hasMany(Notification, { foreignKey: "user_id" });
+  User.hasMany(Report, { foreignKey: "author_id" });
   // Profile
   Profile.belongsTo(User, { foreignKey: "user_id" });
   // location
@@ -35,7 +37,8 @@ export default function setupAssociations() {
   Comment.belongsTo(Memory, { foreignKey: "memory_id" });
   // Notification
   Notification.belongsTo(User, { foreignKey: "user_id" });
-
+  // Reports
+  Report.belongsTo(User, { foreignKey: "author_id" });
   // Follower-following relationship
   User.belongsToMany(User, {
     through: Follower,

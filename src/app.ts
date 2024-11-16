@@ -14,6 +14,7 @@ import {route as commentRoutes} from './routes/comment.route'
 import {route as notificationRoutes} from './routes/notification.route'
 import {route as followersRoutes} from './routes/follower.route'
 import {route as albumRoutes} from './routes/album.route'
+import {route as reportRoutes} from './routes/report.route'
 // Import setupAssociations
 import setupAssociations from './models/associations';
 
@@ -55,6 +56,7 @@ app.use('/api/comment', commentRoutes);
 app.use('/api/notification', notificationRoutes);
 app.use('/api/follower', followersRoutes);
 app.use('/api/album', albumRoutes);
+app.use('/api/report', reportRoutes);
 
 // Error handling middleware
 app.use(notFound);
