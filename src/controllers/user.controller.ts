@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import User from "../models/user.model";
+import { ApiResponse } from "../interfaces/common.interface";
 
 /**
  * @description returns user info by id except for his password 
@@ -37,6 +38,31 @@ const deleteUserController = expressAsyncHandler(
     }
     await user.destroy();
     res.status(200).json({ message: "User deleted successfully" });
+  }
+);
+
+/**
+ * find users by username
+ * @method GET
+ * @route /api/user/:username
+ * @access protected
+ */
+
+export const findUsersByUsernameController = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const username = req.params.username;
+    let response : ApiResponse;
+    const users = await User.findAll({
+      where: { username },
+    });
+    // return response
+    if (!users.length) {
+      response = {
+        success: false,
+        message: "No users found with this username",
+      };
+    }
+    res.json(users);
   }
 );
 

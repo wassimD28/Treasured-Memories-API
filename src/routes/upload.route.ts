@@ -10,36 +10,36 @@ import {
 
 const route = Router();
 
-// column : to determine if it is singular file or multiple files , exp: images, wallImage, avatarImage ...
+// name : to determine if it is singular file or multiple files , exp: images, wallImage, avatarImage ...
 // entity : to determine which entity the file belongs to
 // id : to determine which entity id the file belongs to
 
 // Add multiple images
 route.post(
-  "/multi/:column/:entity/:id",
+  "/multi/:name/:entity/:id",
   authenticateToken,
   uploadMultiFilesController
 );
 // Add single image
 route.post(
-  "/single/:column/:entity/:id",
+  "/single/:name/:entity/:id",
   authenticateToken,
   uploadSingleFileController
 );
 
 // Replace single image within an array of images
 route.put(
-  "/specific/:column/:entity/:id",
+  "/specific/:name/:entity/:id",
   authenticateToken,
   replaceSingleFileController
 );
 
-// Delete the image or the entire array of image depending on the column parameter
-route.delete("/:column/:entity/:id", authenticateToken, deleteFileController);
+// Delete the image or the entire array of image depending on the name parameter
+route.delete("/:name/:entity/:id", authenticateToken, deleteFileController);
 
 // Delete a specific image within an array of images
 route.delete(
-  "/specific/:column/:entity/:id",
+  "/specific/:name/:entity/:id",
   authenticateToken,
   deleteSpecificFileController
 );

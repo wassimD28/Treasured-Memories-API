@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authenticateToken } from "../middleware/authenticateToken.middleware";
-import { putLikeToMemory, removeLikeFromMemory } from "../controllers/like.controller";
+import { checkLikeController, putLikeToMemory, removeLikeFromMemory } from "../controllers/like.controller";
 
 export const route = Router();
 
@@ -9,3 +9,10 @@ route.post('/:id',authenticateToken, putLikeToMemory)
 
 // removing like from a memory
 route.delete("/:id", authenticateToken, removeLikeFromMemory);
+
+// check if specified user already liked a specific memory
+route.get(
+  "/memory/:memory_id/user/:user_id",
+  authenticateToken,
+  checkLikeController
+);

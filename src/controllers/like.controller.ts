@@ -171,3 +171,55 @@ export const removeLikeFromMemory = expressAsyncHandler(
     res.status(200).json(response);
   }
 );
+
+/**
+ * check if specified user already liked a specific memory.
+ * @method GET
+ * @route /api/like/memory/:memory_id/user/:user_id
+ * @access public
+ */
+
+export const checkLikeController = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const memory_id = req.params.memory_id;
+    const user_id = req.params.user_id;
+    let response: ApiResponse;
+    // Check if memory id and user id are specified
+    if (!memory_id ||!user_id) {
+      response = {
+        success: false,
+        message: "Memory id and user id are required.",
+      };
+      res.status(400).json(response);
+      return;
+    }
+    // Check if the memory exists
+    const memoryExists = await Memory.findByPk(memory_id);
+    if (!memoryExists) {
+      response = {
+        success: false,
+        message: `Memory with id ${memory_id} not found.`,
+      };
+      res.status(404).json(response);
+      return;
+    }
+    // Check if the user has liked this memory
+    const likeExists = await Like.findOne({
+      where: {
+        memory_id,
+        user_id,
+      },
+    });
+    if (likeExists) {
+      response = {
+        success: true,
+        message: "User has already liked this memory.",
+      };
+    } else {
+      response = {
+        success: false,
+        message: "User has not liked this memory.",
+      };
+    }
+    res.status(200).json(response);
+  })
