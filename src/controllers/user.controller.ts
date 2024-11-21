@@ -2,9 +2,11 @@ import { Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import User from "../models/user.model";
 import { ApiResponse } from "../interfaces/common.interface";
+import Profile from "../models/profile.model";
+import { Op, Sequelize } from "sequelize";
 
 /**
- * @description returns user info by id except for his password 
+ * @description returns user info by id except for his password
  * @method GET
  * @route /api/user/:id
  * @access public
@@ -48,21 +50,80 @@ const deleteUserController = expressAsyncHandler(
  * @access protected
  */
 
-export const findUsersByUsernameController = expressAsyncHandler(
+export const findUsersController = expressAsyncHandler(
   async (req: Request, res: Response) => {
-    const username = req.params.username;
-    let response : ApiResponse;
-    const users = await User.findAll({
-      where: { username },
-    });
-    // return response
+    const input: string = req.params.input; // Extract input from request parameters
+    let response: ApiResponse;
+    let users: User[];
+    let isUsername: boolean = false;
+
+    // Check if the input includes '@'
+    if (!input.includes("@")) {
+      // Without '@', search by first name or last name (case-insensitive)
+      users = await User.findAll({
+        include: {
+          model: Profile,
+          where: {
+            [Op.or]: [
+              Sequelize.where(
+                Sequelize.fn("LOWER", Sequelize.col("Profile.firstName")),
+                "LIKE",
+                `%${input.toLowerCase()}%`
+              ), // Case-insensitive search for first name
+              Sequelize.where(
+                Sequelize.fn("LOWER", Sequelize.col("Profile.lastName")),
+                "LIKE",
+                `%${input.toLowerCase()}%`
+              ), // Case-insensitive search for last name
+            ],
+          },
+          attributes: ["firstName", "lastName", "avatarImage"], // Include these Profile fields
+        },
+        attributes: ["username"], // Only include the username field from User
+        limit: 5, // Limit the number of users to 5
+      });
+    } else {
+      // With '@', remove '@' from input and search for matching or partial usernames
+      const cleanedInput = input.replace("@", ""); // Remove '@' from the input
+
+      users = await User.findAll({
+        where: {
+          [Op.or]: [
+            Sequelize.where(
+              Sequelize.fn("LOWER", Sequelize.col("username")),
+              "LIKE",
+              `%${cleanedInput.toLowerCase()}%`
+            ), // Case-insensitive search for username
+          ],
+        },
+        attributes: ["username"], // Only include the username field from User
+        limit: 5, // Limit the number of users to 5
+        include: {
+          model: Profile,
+          attributes: ["firstName", "lastName", "avatarImage"], // Include Profile fields
+        },
+      });
+      isUsername = true; // Set flag to indicate that we are searching by username
+    }
+
+    // Return response
     if (!users.length) {
+      // If no users are found, return a failure response
       response = {
         success: false,
-        message: "No users found with this username",
+        message: `No users found with ${isUsername ? 'username' : 'name'} = ${input}`,
       };
+      res.status(404).json(response); // Respond with 404 status and the message
+      return;
     }
-    res.json(users);
+
+    // If users are found, return them in the response
+    response = {
+      success: true,
+      message: "Users found successfully",
+      data: users, // Include the list of found users
+    };
+    res.json(response);
   }
 );
 

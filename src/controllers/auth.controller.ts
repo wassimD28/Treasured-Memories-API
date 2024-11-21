@@ -57,6 +57,7 @@ const loginController = expressAsyncHandler(
         data: {
           user: {
             id: user.id,
+            username: user.username,
             roles: user.roles,
           },
           tokens: {

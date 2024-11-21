@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
   deleteUserController,
-  findUsersByUsernameController,
+  findUsersController,
   getUserByIdController,
 } from "../controllers/user.controller";
 import { authenticateToken } from "../middleware/authenticateToken.middleware";
@@ -15,10 +15,10 @@ route.get("/:id", authenticateToken, getUserByIdController);
 // delete user
 route.delete("/:id", authenticateToken, isOwnerOrAdmin, deleteUserController);
 
-// search specific user by username
+// search specific user by name or @username ( find with username if the params starts with @ )
 route.get(
-  "/:username",
+  "/search/:input",
   authenticateToken,
-  findUsersByUsernameController
+  findUsersController
 );
 export { route };
