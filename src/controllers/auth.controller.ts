@@ -6,6 +6,7 @@ import RefreshToken from "../models/refreshToken.model";
 import { generateAccessToken, generateRefreshToken } from "../utils/auth.util";
 import jwt from "jsonwebtoken";
 import Profile from "../models/profile.model";
+import { Gender } from "../Enums/common.enum";
 
 /**
  * @description user register
@@ -22,7 +23,7 @@ const registerController = expressAsyncHandler(
       email: req.body.email,
       password: hashedPassword,
     });
-    await Profile.create({user_id: user.id})
+    await Profile.create({user_id: user.id, gender: Gender.NOT_SPECIFIED})
     res.status(201).json({
       message: "User registered successfully",
     });
@@ -124,7 +125,7 @@ const refreshTokenController = expressAsyncHandler(
       const storedToken = await RefreshToken.findOne({
         where: { token: refreshToken },
       });
-
+      // ensure the refresh token is exists in the database
       if (!storedToken) {
         res.status(403).json({ message: "Invalid refresh token" });
         return;

@@ -10,6 +10,49 @@ import Profile from "../models/profile.model";
 import { emitNotification } from "../utils/socket.util";
 
 /**
+ * get all comments of specific memory via memory id.
+ * @method GET
+ * @route /api/comment/:id
+ * @access public
+ */
+export const getCommentsOfMemoryController = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const memory_id = req.params.id;
+    let response: ApiResponse;
+
+    // check if memory id is specified
+    if (!memory_id) {
+      response = {
+        success: false,
+        message: "Memory ID is required",
+      };
+      res.status(400).json(response);
+      return;
+    }
+    // check if the memory exists
+    const memoryExists = await Memory.findByPk(memory_id);
+    if (!memoryExists) {
+      response = {
+        success: false,
+        message: `Memory with id ${memory_id} not found.`,
+      };
+      res.status(404).json(response);
+      return;
+    }
+
+    // get all comments of the specified memory
+    const comments = await Comment.findAll({ where: { memory_id } });
+    response = {
+      success: true,
+      message: "Comments retrieved successfully",
+      data: comments,
+    };
+    res.json(response);
+  }
+);
+
+
+/**
  * add comment to specific memory.
  * @method POST
  * @route /api/comment/:id

@@ -1,5 +1,6 @@
 import { DataTypes, Model } from "sequelize";
 import sequelize from "../config/database";
+import { Gender } from "../Enums/common.enum";
 
 class Profile extends Model{
   public id!: number;
@@ -9,7 +10,7 @@ class Profile extends Model{
   public avatarImage!: string;
   public wallImage!: string;
   public address!: string;
-  public gender!: string;
+  public gender!: Gender;
   public birthday!: Date;
   public bio!: string;
   public createdAt!: Date;
@@ -58,8 +59,13 @@ Profile.init(
       allowNull: true,
     },
     gender: {
-      type: DataTypes.STRING,
-      allowNull: true,
+      type: DataTypes.ENUM,
+      values: Object.values(Gender),
+      allowNull: false,
+      defaultValue: Gender.NOT_SPECIFIED,
+      validate: {
+        isIn: [Object.values(Gender)],
+      },
     },
     birthday: {
       type: DataTypes.DATEONLY,

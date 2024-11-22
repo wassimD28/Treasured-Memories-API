@@ -1,4 +1,4 @@
-import { ImageTypeName, ModelTypeName } from "../Enums/common.enum";
+import { ImageTypeName, ModelWithImage } from "../Enums/common.enum";
 import { Request, Response, NextFunction } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Memory from "../models/memory.model";
@@ -8,6 +8,7 @@ import {
 } from "../utils/handleUpload.util";
 import path from "path";
 import fs from "fs";
+import Profile from "../models/profile.model";
 // Define interface for request with file
 interface MulterRequest extends Request {
   file: Express.Multer.File;
@@ -43,7 +44,7 @@ export const uploadMultiFilesController = expressAsyncHandler(
       }
 
       // Validate entity type
-      const modelTypeArray: string[] = Object.values(ModelTypeName);
+      const modelTypeArray: string[] = Object.values(ModelWithImage);
       if (!modelTypeArray.includes(entity)) {
         res.status(400).json({
           message: `Invalid entity type. Allowed types: ${modelTypeArray.join(
@@ -54,18 +55,23 @@ export const uploadMultiFilesController = expressAsyncHandler(
       }
 
       // Get the appropriate model
-      let Model;
+      let modelAttributes;
+      let entityRecord;
       switch (entity) {
-        case ModelTypeName.MEMORY:
-          Model = Memory;
+        case ModelWithImage.MEMORY:
+          modelAttributes = Memory.getAttributes();
+          entityRecord = await Memory.findByPk(id)
           break;
+        case ModelWithImage.PROFILE:
+          modelAttributes = Profile.getAttributes();
+          entityRecord = await Profile.findByPk(id)
+          break;   
         default:
           res.status(400).json({ message: "Invalid entity" });
           return;
       }
-
       // Validate column exists in model
-      if (!(columnName in Model.getAttributes())) {
+      if (!(columnName in modelAttributes)) {
         res.status(400).json({
           message: `The entity '${entity}' does not have a column named '${columnName}'`,
         });
@@ -73,7 +79,6 @@ export const uploadMultiFilesController = expressAsyncHandler(
       }
 
       // Check if entity exists
-      const entityRecord = await Model.findByPk(id);
       if (!entityRecord) {
         res.status(404).json({
           message: `${entity} with id ${id} not found`,
@@ -185,7 +190,7 @@ export const uploadSingleFileController = expressAsyncHandler(
       }
 
       // Validate entity type
-      const modelTypeArray: string[] = Object.values(ModelTypeName);
+      const modelTypeArray: string[] = Object.values(ModelWithImage);
       if (!modelTypeArray.includes(entity)) {
         res.status(400).json({
           message: `Invalid entity type. Allowed types: ${modelTypeArray.join(
@@ -196,18 +201,23 @@ export const uploadSingleFileController = expressAsyncHandler(
       }
 
       // Get the appropriate model
-      let Model;
+      let modelAttributes;
+      let entityRecord;
       switch (entity) {
-        case ModelTypeName.MEMORY:
-          Model = Memory;
+        case ModelWithImage.MEMORY:
+          modelAttributes = Memory.getAttributes();
+          entityRecord = await Memory.findByPk(id);
+          break;
+        case ModelWithImage.PROFILE:
+          modelAttributes = Profile.getAttributes();
+          entityRecord = await Profile.findByPk(id);
           break;
         default:
           res.status(400).json({ message: "Invalid entity" });
           return;
       }
-
       // Validate column exists in model
-      if (!(columnName in Model.getAttributes())) {
+      if (!(columnName in modelAttributes)) {
         res.status(400).json({
           message: `The entity '${entity}' does not have a column named '${columnName}'`,
         });
@@ -215,7 +225,6 @@ export const uploadSingleFileController = expressAsyncHandler(
       }
 
       // Check if entity exists
-      const entityRecord = await Model.findByPk(id);
       if (!entityRecord) {
         res.status(404).json({
           message: `${entity} with id ${id} not found`,
@@ -223,8 +232,16 @@ export const uploadSingleFileController = expressAsyncHandler(
         return;
       }
       // check if the sender is the owner of the entity
-      if (!(req.auth?.userId && parseInt(req.auth?.userId) == entityRecord.user_id)){
-        res.status(403).json({ message: "You do not have permission to perform this action." });
+      if (
+        !(
+          req.auth?.userId && parseInt(req.auth?.userId) == entityRecord.user_id
+        )
+      ) {
+        res
+          .status(403)
+          .json({
+            message: "You do not have permission to perform this action.",
+          });
         return;
       }
 
@@ -331,7 +348,7 @@ export const replaceSingleFileController = expressAsyncHandler(
       }
 
       // Validate entity type
-      const modelTypeArray: string[] = Object.values(ModelTypeName);
+      const modelTypeArray: string[] = Object.values(ModelWithImage);
       if (!modelTypeArray.includes(entity)) {
         res.status(400).json({
           message: `Invalid entity type. Allowed types: ${modelTypeArray.join(
@@ -342,25 +359,30 @@ export const replaceSingleFileController = expressAsyncHandler(
       }
 
       // Get the appropriate model
-      let Model;
+      let modelAttributes;
+      let entityRecord;
       switch (entity) {
-        case ModelTypeName.MEMORY:
-          Model = Memory;
+        case ModelWithImage.MEMORY:
+          modelAttributes = Memory.getAttributes();
+          entityRecord = await Memory.findByPk(id);
+          break;
+        case ModelWithImage.PROFILE:
+          modelAttributes = Profile.getAttributes();
+          entityRecord = await Profile.findByPk(id);
           break;
         default:
           res.status(400).json({ message: "Invalid entity" });
           return;
       }
-
       // Validate column exists in model
-      if (!(columnName in Model.getAttributes())) {
+      if (!(columnName in modelAttributes)) {
         res.status(400).json({
           message: `The entity '${entity}' does not have a column named '${columnName}'`,
         });
         return;
       }
-      // check if the entity exists
-      const entityRecord = await Model.findByPk(id);
+
+      // Check if entity exists
       if (!entityRecord) {
         res.status(404).json({
           message: `${entity} with id ${id} not found`,
@@ -368,8 +390,16 @@ export const replaceSingleFileController = expressAsyncHandler(
         return;
       }
       // check if the sender is the owner of the entity
-      if (!(req.auth?.userId && parseInt(req.auth?.userId) == entityRecord.user_id)){
-        res.status(403).json({ message: "You do not have permission to perform this action." });
+      if (
+        !(
+          req.auth?.userId && parseInt(req.auth?.userId) == entityRecord.user_id
+        )
+      ) {
+        res
+          .status(403)
+          .json({
+            message: "You do not have permission to perform this action.",
+          });
         return;
       }
       const existingFiles =
@@ -509,7 +539,7 @@ export const deleteFileController = expressAsyncHandler(
       }
 
       // Validate entity type
-      const modelTypeArray: string[] = Object.values(ModelTypeName);
+      const modelTypeArray: string[] = Object.values(ModelWithImage);
       if (!modelTypeArray.includes(entity)) {
         res.status(400).json({
           message: `Invalid entity type. Allowed types: ${modelTypeArray.join(
@@ -520,18 +550,23 @@ export const deleteFileController = expressAsyncHandler(
       }
 
       // Get the appropriate model
-      let Model;
+      let modelAttributes;
+      let entityRecord;
       switch (entity) {
-        case ModelTypeName.MEMORY:
-          Model = Memory;
+        case ModelWithImage.MEMORY:
+          modelAttributes = Memory.getAttributes();
+          entityRecord = await Memory.findByPk(id);
+          break;
+        case ModelWithImage.PROFILE:
+          modelAttributes = Profile.getAttributes();
+          entityRecord = await Profile.findByPk(id);
           break;
         default:
           res.status(400).json({ message: "Invalid entity" });
           return;
       }
-
       // Validate column exists in model
-      if (!(columnName in Model.getAttributes())) {
+      if (!(columnName in modelAttributes)) {
         res.status(400).json({
           message: `The entity '${entity}' does not have a column named '${columnName}'`,
         });
@@ -539,7 +574,6 @@ export const deleteFileController = expressAsyncHandler(
       }
 
       // Check if entity exists
-      const entityRecord = await Model.findByPk(id);
       if (!entityRecord) {
         res.status(404).json({
           message: `${entity} with id ${id} not found`,
@@ -547,8 +581,16 @@ export const deleteFileController = expressAsyncHandler(
         return;
       }
       // check if the sender is the owner of the entity
-      if (!(req.auth?.userId && parseInt(req.auth?.userId) == entityRecord.user_id)){
-        res.status(403).json({ message: "You do not have permission to perform this action." });
+      if (
+        !(
+          req.auth?.userId && parseInt(req.auth?.userId) == entityRecord.user_id
+        )
+      ) {
+        res
+          .status(403)
+          .json({
+            message: "You do not have permission to perform this action.",
+          });
         return;
       }
 
@@ -642,7 +684,7 @@ export const deleteSpecificFileController = expressAsyncHandler(
       }
 
       // Validate entity type
-      const modelTypeArray: string[] = Object.values(ModelTypeName);
+      const modelTypeArray: string[] = Object.values(ModelWithImage);
       if (!modelTypeArray.includes(entity)) {
         res.status(400).json({
           message: `Invalid entity type. Allowed types: ${modelTypeArray.join(
@@ -653,25 +695,30 @@ export const deleteSpecificFileController = expressAsyncHandler(
       }
 
       // Get the appropriate model
-      let Model;
+      let modelAttributes;
+      let entityRecord;
       switch (entity) {
-        case ModelTypeName.MEMORY:
-          Model = Memory;
+        case ModelWithImage.MEMORY:
+          modelAttributes = Memory.getAttributes();
+          entityRecord = await Memory.findByPk(id);
+          break;
+        case ModelWithImage.PROFILE:
+          modelAttributes = Profile.getAttributes();
+          entityRecord = await Profile.findByPk(id);
           break;
         default:
           res.status(400).json({ message: "Invalid entity" });
           return;
       }
-
       // Validate column exists in model
-      if (!(columnName in Model.getAttributes())) {
+      if (!(columnName in modelAttributes)) {
         res.status(400).json({
           message: `The entity '${entity}' does not have a column named '${columnName}'`,
         });
         return;
       }
 
-      const entityRecord = await Model.findByPk(id);
+      // Check if entity exists
       if (!entityRecord) {
         res.status(404).json({
           message: `${entity} with id ${id} not found`,
@@ -679,8 +726,16 @@ export const deleteSpecificFileController = expressAsyncHandler(
         return;
       }
       // check if the sender is the owner of the entity
-      if (!(req.auth?.userId && parseInt(req.auth?.userId) == entityRecord.user_id)){
-        res.status(403).json({ message: "You do not have permission to perform this action." });
+      if (
+        !(
+          req.auth?.userId && parseInt(req.auth?.userId) == entityRecord.user_id
+        )
+      ) {
+        res
+          .status(403)
+          .json({
+            message: "You do not have permission to perform this action.",
+          });
         return;
       }
 
