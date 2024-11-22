@@ -5,6 +5,8 @@ import User from "../models/user.model";
 import Follower from "../models/follower.model";
 import Notification from "../models/notification.model";
 import { NotificationTapeName } from "../Enums/common.enum";
+import Profile from "../models/profile.model";
+import { emitNotification } from "../utils/socket.util";
 
 /**
  * Adds a new follower to the user via user_id and followed_id.
@@ -59,7 +61,7 @@ export const addFollow = expressAsyncHandler(
     // update following counter in follower
     await User.increment("followingsCounter", { where: { id: user_id } });
     // create a new notification for the followed user
-    await Notification.create({
+    const notification = await Notification.create({
       user_id: followed_id,
       interactor_id: user_id,
       type: NotificationTapeName.NEW_FOLLOWER,
@@ -68,6 +70,20 @@ export const addFollow = expressAsyncHandler(
     });
     // increment the notification counter in the user of the followed user
     await User.increment("notificationCounter", { where: { id: followed_id } });
+
+    // Emit real-time notification
+    const notificationData = {
+      ...notification.toJSON(),
+      interactor: await User.findByPk(user_id, {
+        attributes: ["id", "username"],
+        include: {
+          model: Profile,
+          attributes: ["avatarImage", "firstName", "LastName"],
+        },
+      }),
+    };
+
+    emitNotification(parseInt(followed_id), notificationData);
 
     response = {
       success: true,

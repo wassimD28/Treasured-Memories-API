@@ -1,8 +1,8 @@
 // server.ts
-import app from './src/app';
+import httpServer from "./src/app";
 
-const PORT = process.env.PORT || 3000;
+export const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

@@ -17,9 +17,13 @@ import {route as albumRoutes} from './routes/album.route'
 import {route as reportRoutes} from './routes/report.route'
 // Import setupAssociations
 import setupAssociations from './models/associations';
+import { createServer } from 'http';
+import { initializeSocket } from './utils/socket.util';
 
 const app = express();
-
+const httpServer = createServer(app)
+// Initialize Socket.IO
+initializeSocket(httpServer);
 // Middleware
 app.use(express.json());
 app.use(cors()); // to let the front-end access the api
@@ -62,4 +66,4 @@ app.use('/api/report', reportRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-export default app;
+export default httpServer;

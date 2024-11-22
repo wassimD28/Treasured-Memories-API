@@ -6,6 +6,8 @@ import Memory from "../models/memory.model";
 import Notification from "../models/notification.model";
 import { NotificationTapeName } from "../Enums/common.enum";
 import User from "../models/user.model";
+import { emitNotification } from "../utils/socket.util";
+import Profile from "../models/profile.model";
 
 /**
  * link user like with a specified memory.
@@ -66,7 +68,7 @@ export const putLikeToMemory = expressAsyncHandler(
     // increment the like counter in the specified memory
     await memoryExists.increment("likeCounter");
     // create a notification for the user who liked the memory.
-    await Notification.create({
+    const notification = await Notification.create({
       user_id: memoryExists.user_id,
       interactor_id: user_id,
       type: NotificationTapeName.LIKE,
@@ -78,6 +80,20 @@ export const putLikeToMemory = expressAsyncHandler(
     const user = await User.findByPk(memoryExists.user_id);
     if (user) {
       user.increment("notificationCounter");
+
+      // Emit real-time notification
+      const notificationData = {
+        ...notification.toJSON(),
+        interactor: await User.findByPk(user_id, {
+          attributes: ["id", "username"],
+          include:{
+            model: Profile,
+            attributes:['avatarImage','firstName','LastName']
+          }
+        }),
+      };
+
+      emitNotification(memoryExists.user_id, notificationData);
     }
     // return the updated memory
     response = {
