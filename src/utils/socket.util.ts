@@ -8,15 +8,19 @@ interface CustomSocket extends Socket {
 
 export let io: SocketIOServer;
 
-const FRONTEND_PORT = 4200;
+const FRONTEND_PORT = 5173;
 export const initializeSocket = (server: HttpServer) => {
   io = new SocketIOServer(server, {
     cors: {
       origin: process.env.FRONTEND_URL || `http://localhost:${FRONTEND_PORT}`,
       methods: ["GET", "POST"],
       credentials: true,
+      allowedHeaders: ["*"],
     },
-    transports: ["websocket"],
+    transports: ["polling", "websocket"],
+    allowEIO3: true,
+    pingTimeout: 60000,
+    pingInterval: 25000,
   });
 
   // Middleware to authenticate socket connections
@@ -69,5 +73,8 @@ export const initializeSocket = (server: HttpServer) => {
 export const emitNotification = (userId: number, notification: any) => {
   if (io) {
     io.to(`user:${userId}`).emit("notification", notification);
+    console.log(`Emitted notification to user ${userId}:, notification`);
+  } else {
+    console.warn('Socket.io instance not initialized');
   }
 };

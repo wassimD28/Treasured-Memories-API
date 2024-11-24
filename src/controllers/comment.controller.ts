@@ -10,6 +10,54 @@ import Profile from "../models/profile.model";
 import { emitNotification } from "../utils/socket.util";
 
 /**
+ * get specific memory by comment_id.
+ * @method GET
+ * @route /api/comment/memory/:id
+ * @access public
+ */
+export const getMemoryByCommentController = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const comment_id = req.params.id;
+    let response: ApiResponse;
+    // check if comment id is specified
+    if (!comment_id) {
+      response = {
+        success: false,
+        message: "Comment ID is required",
+      };
+      res.status(400).json(response);
+      return;
+    }
+    // get the comment
+    const comment = await Comment.findByPk(comment_id);
+    if (!comment) {
+      response = {
+        success: false,
+        message: `Comment with id ${comment_id} not found.`,
+      };
+      res.status(404).json(response);
+      return;
+    }
+    // get the memory of the comment
+    const memory = await Memory.findByPk(comment.memory_id);
+    if (!memory) {
+      response = {
+        success: false,
+        message: `Memory with id ${comment.memory_id} not found.`,
+      };
+      res.status(404).json(response);
+      return;
+    }
+    response = {
+      success: true,
+      message: "Memory retrieved successfully",
+      data: { memory, comment },
+    };
+    res.status(200).json(response);
+  }
+);
+
+/**
  * get all comments of specific memory via memory id.
  * @method GET
  * @route /api/comment/:id
@@ -50,7 +98,6 @@ export const getCommentsOfMemoryController = expressAsyncHandler(
     res.json(response);
   }
 );
-
 
 /**
  * add comment to specific memory.
@@ -251,7 +298,6 @@ export const updateCommentController = expressAsyncHandler(
       res.status(400).json(response);
       return;
     }
-    
 
     // check if the specified comment exists
     const commentExists = await Comment.findByPk(comment_id);
@@ -273,4 +319,5 @@ export const updateCommentController = expressAsyncHandler(
       message: "Comment updated successfully",
     };
     res.status(200).json(response);
-  });
+  }
+);

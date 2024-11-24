@@ -40,7 +40,6 @@ function verifyToken(token: string): DecodedToken | undefined {
       } 
       // return decoded token
       DecodedToken = decoded as DecodedToken;
-      console.log("________________________\nDecoded token : "+ JSON.stringify(DecodedToken));
     }
   );
   return DecodedToken;

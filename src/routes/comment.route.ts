@@ -4,6 +4,7 @@ import {
   addCommentController,
   deleteCommentController,
   getCommentsOfMemoryController,
+  getMemoryByCommentController,
   updateCommentController,
 } from "../controllers/comment.controller";
 import { isOwner } from "../middleware/isOwner.middleware";
@@ -13,13 +14,15 @@ import { ModelTypeName } from "../Enums/common.enum";
 
 export const route = Router();
 
-// get all comments for specified memory via memory_id
-
+// get specific memory by comment_id
 route.get(
-  "/:id",
+  "/memory/:id",
   authenticateToken,
-  getCommentsOfMemoryController
+  getMemoryByCommentController
 );
+
+// get all comments for specified memory via memory_id
+route.get("/:id", authenticateToken, getCommentsOfMemoryController);
 // add comment to specified memory
 route.post("/:id", authenticateToken, addCommentController);
 // update comment of specified memory

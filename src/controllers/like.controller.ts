@@ -10,6 +10,55 @@ import { emitNotification } from "../utils/socket.util";
 import Profile from "../models/profile.model";
 
 /**
+ * get specific memory by like_id.
+ * @method POST
+ * @route /api/like/memory/:id
+ * @access public
+ */
+
+export const getMemoryByLikeController = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const like_id = req.params.id;
+    let response: ApiResponse;
+    // check if like_id is specified
+    if (!like_id) {
+      response = {
+        success: false,
+        message: "Like ID is required",
+      };
+      res.status(400).json(response);
+      return;
+    }
+    // check if the like exists
+    const likeExists = await Like.findByPk(like_id);
+    if (!likeExists) {
+      response = {
+        success: false,
+        message: `Like with id ${like_id} not found.`,
+      };
+      res.status(404).json(response);
+      return;
+    }
+    // get the memory associated with this like
+    const memory = await Memory.findByPk(likeExists.memory_id);
+    if (!memory) {
+      response = {
+        success: false,
+        message: `Memory with id ${likeExists.memory_id} not found.`,
+      };
+      res.status(404).json(response);
+      return;
+    }
+    // return memory
+    response = {
+      success: true,
+      message: "Memory retrieved successfully",
+      data: memory,
+    };
+    res.json(response);
+  });
+
+/**
  * link user like with a specified memory.
  * @method POST
  * @route /api/like/:id
