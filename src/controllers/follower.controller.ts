@@ -9,6 +9,56 @@ import Profile from "../models/profile.model";
 import { emitNotification } from "../utils/socket.util";
 
 /**
+ * check if a user is following specific user.
+ * @method GET
+ * @route /api/follower/:id/:followed_id
+ * @access private
+ */
+
+export const checkFollowingController = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const user_id = req.auth?.userId;
+    const followed_id = req.params.followed_id;
+    let response: ApiResponse;
+    // check if the followed id is valid
+    if (!followed_id) {
+      response = {
+        success: false,
+        message: "Followed user ID is required",
+      };
+      res.status(400).json(response);
+      return;
+    }
+    // check if the followed user exists
+    const followedUserExists = await User.findByPk(followed_id);
+    if (!followedUserExists) {
+      response = {
+        success: false,
+        message: "Followed user not found",
+      };
+      res.status(404).json(response);
+      return;
+    }
+    // check if the user is already following the followed user
+    const isFollowing = await Follower.findOne({
+      where: { followerId: user_id, followingId: followed_id },
+    });
+    if (!isFollowing) {
+      response = {
+        success: false,
+        message: "User is not following the followed user",
+      };
+      res.status(200).json(response);
+    } else {
+      response = {
+        success: true,
+        message: "User is following the followed user",
+      };
+      res.status(200).json(response);
+    }
+  })
+
+/**
  * Adds a new follower to the user via user_id and followed_id.
  * @method POST
  * @route /api/follower/:id/:followed_id
