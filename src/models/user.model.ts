@@ -7,7 +7,7 @@ class User extends Model {
   public username!: string;
   public email!: string;
   public password!: string;
-  public roles!: string[];
+  public roles!: string[] | null;
   public notificationCounter!: number;
   public followersCounter !: number
   public followingsCounter!: number;

@@ -111,7 +111,9 @@ export const findUsersController = expressAsyncHandler(
       // If no users are found, return a failure response
       response = {
         success: false,
-        message: `No users found with ${isUsername ? 'username' : 'name'} = ${input}`,
+        message: `No users found with ${
+          isUsername ? "username" : "name"
+        } = ${input}`,
       };
       res.status(404).json(response); // Respond with 404 status and the message
       return;
@@ -126,46 +128,101 @@ export const findUsersController = expressAsyncHandler(
     res.json(response);
   }
 );
-
 /**
- * get all users in specific limit
+ * find users by input in specified limit
  * @method GET
- * @route /api/user/:limit
+ * @route /api/user/:input
  * @access protected
  */
 
-export const getAllUsersController = expressAsyncHandler(
+export const findUsersByLimitController = expressAsyncHandler(
   async (req: Request, res: Response) => {
+    const input: string = req.params.input; // Extract input from request parameters
     const limit = parseInt(req.params.limit);
     let response: ApiResponse;
-    // check if limit is valid
-    if (!Number.isInteger(limit) || limit <= 0) {
+    let users: User[];
+    let isUsername: boolean = false;
+    // check if limit is valid number
+    if (isNaN(limit) || limit < 1 || limit > 100) {
       response = {
         success: false,
-        message: "Limit must be a positive integer",
+        message: "Invalid limit. Please provide a number between 1 and 100.",
       };
       res.status(400).json(response);
       return;
     }
-    // return all users
-    const users = await User.findAll({
-      include: {
-        model: Profile,
-        attributes: ["firstName", "lastName", "avatarImage"], // Include Profile fields
-      },
-      attributes:{
-        exclude: ["password"], // Exclude password field from response
-      },
-      limit, // Set the limit
-    });
+
+    // Check if the input includes '@'
+    if (!input.includes("@")) {
+      // Without '@', search by first name or last name (case-insensitive)
+      users = await User.findAll({
+        include: {
+          model: Profile,
+          where: {
+            [Op.or]: [
+              Sequelize.where(
+                Sequelize.fn("LOWER", Sequelize.col("Profile.firstName")),
+                "LIKE",
+                `%${input.toLowerCase()}%`
+              ), // Case-insensitive search for first name
+              Sequelize.where(
+                Sequelize.fn("LOWER", Sequelize.col("Profile.lastName")),
+                "LIKE",
+                `%${input.toLowerCase()}%`
+              ), // Case-insensitive search for last name
+            ],
+          },
+          attributes: ["firstName", "lastName", "avatarImage"], // Include these Profile fields
+        },
+        attributes: { exclude: ["password"] },
+        limit, // Limit the number of users to be returned
+      });
+    } else {
+      // With '@', remove '@' from input and search for matching or partial usernames
+      const cleanedInput = input.replace("@", ""); // Remove '@' from the input
+
+      users = await User.findAll({
+        where: {
+          [Op.or]: [
+            Sequelize.where(
+              Sequelize.fn("LOWER", Sequelize.col("username")),
+              "LIKE",
+              `%${cleanedInput.toLowerCase()}%`
+            ), // Case-insensitive search for username
+          ],
+        },
+        attributes: { exclude: ["password"] },
+        limit,
+        include: {
+          model: Profile,
+          attributes: ["firstName", "lastName", "avatarImage"], // Include Profile fields
+        },
+      });
+      isUsername = true; // Set flag to indicate that we are searching by username
+    }
+
+    // Return response
+    if (!users.length) {
+      // If no users are found, return a failure response
+      response = {
+        success: false,
+        message: `No users found with ${
+          isUsername ? "username" : "name"
+        } = ${input}`,
+      };
+      res.status(404).json(response); // Respond with 404 status and the message
+      return;
+    }
+
+    // If users are found, return them in the response
     response = {
       success: true,
       message: "Users found successfully",
       data: users, // Include the list of found users
     };
-    res.status(200).json(response);
-  });
-
+    res.json(response);
+  }
+);
 
 /**
  * promote specific user to moderator
@@ -188,11 +245,14 @@ export const promoteToModeratorController = expressAsyncHandler(
       res.status(404).json(response);
       return;
     }
-    // todo: fix getting null array
+    let rolesArray;
     // check if roles array not null
-    
-    // convert user roles to array
-    const rolesArray = JSON.parse(user.roles?.toString()) ?? [];
+    if (user.roles === null) {
+      rolesArray = [];
+    } else {
+      // convert user roles to array
+      rolesArray = JSON.parse(user.roles.toString());
+    }
     // check if user is already a moderator
     if (rolesArray.includes("MODERATOR")) {
       response = {
@@ -202,7 +262,7 @@ export const promoteToModeratorController = expressAsyncHandler(
       res.status(400).json(response);
       return;
     }
-    
+
     // promote user to moderator
     user.roles = ["MODERATOR"];
     await user.save();
@@ -234,9 +294,16 @@ export const demoteToUserController = expressAsyncHandler(
       res.status(404).json(response);
       return;
     }
-    // todo: fix getting null array
+    let rolesArray;
+    // check if roles array not null
+    if (user.roles === null) {
+      rolesArray = [];
+    } else {
+      // convert user roles to array
+      rolesArray = JSON.parse(user.roles.toString());
+    }
     // check if user is already a user
-    if (!user.roles.includes("MODERATOR")) {
+    if (!rolesArray.includes("MODERATOR")) {
       response = {
         success: false,
         message: "User is not a moderator",
@@ -253,5 +320,6 @@ export const demoteToUserController = expressAsyncHandler(
       message: "User demoted to user successfully",
     };
     res.status(200).json(response);
-  });
+  }
+);
 export { getUserByIdController, deleteUserController };

@@ -1,8 +1,9 @@
 import { Router } from "express";
 import {
   deleteUserController,
+  demoteToUserController,
+  findUsersByLimitController,
   findUsersController,
-  getAllUsersController,
   getUserByIdController,
   promoteToModeratorController,
 } from "../controllers/user.controller";
@@ -21,8 +22,8 @@ route.delete("/:id", authenticateToken, isOwnerOrAdmin, deleteUserController);
 // search specific user by name or @username ( find with username if the params starts with @ )
 route.get("/search/:input", authenticateToken, findUsersController);
 
-// get all users in specific limit
-route.get("/all/:limit", authenticateToken, isAdmin, getAllUsersController);
+// search specific users by input in specific limit
+route.get("/search/:input/:limit", authenticateToken, isAdmin, findUsersByLimitController);
 
 // promote specific user to moderator
 route.post(
@@ -33,4 +34,5 @@ route.post(
 );
 
 // demote specific moderator to moderator
+route.delete("/demote/:id", authenticateToken, isAdmin, demoteToUserController);
 export { route };
