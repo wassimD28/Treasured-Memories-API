@@ -73,8 +73,6 @@ const getMemoryByIdController = expressAsyncHandler(
     // Fetch user memory from the database using user_id and memory_id
     const userMemory = await Memory.findOne({
       where: { id: memory_id },
-      // don't return user_id within the response
-      attributes: { exclude: ["user_id"] },
       // include location details within the response
       include: [
         {
