@@ -6,11 +6,21 @@ import { isOwner } from "../middleware/isOwner.middleware";
 import {
   createAlbumController,
   deleteAlbumController,
+  getAlbumMemoriesController,
   getAllAlbumController,
   getSingleAlbumController,
   updateAlbumController,
 } from "../controllers/album.controller";
 export const route = Router();
+
+// get all memories in specific album
+route.get(
+  "/memories/:id",
+  authenticateToken,
+  setEntityRequest(ModelTypeName.ALBUM),
+  isOwner,
+  getAlbumMemoriesController
+);
 
 // get all albums via user id
 route.get(
@@ -22,7 +32,6 @@ route.get(
 );
 
 // get specific album of a user via album id
-
 route.get(
   "/single/:id",
   authenticateToken,

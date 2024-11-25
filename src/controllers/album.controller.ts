@@ -4,6 +4,46 @@ import Album from "../models/album.model";
 import { ApiResponse } from "../interfaces/common.interface";
 import Memory from "../models/memory.model";
 
+
+/**
+ * get all memories in specific album.
+ * @method GET
+ * @route /api/album/memories/:id
+ * @access private
+ */
+
+export const getAlbumMemoriesController = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const album_id = req.params.id;
+    let response: ApiResponse;
+    // check if album id is specified
+    if (!album_id) {
+      response = {
+        success: false,
+        message: "Album ID is required",
+      };
+      res.status(400).json(response);
+      return;
+    }
+    // check if the album exists
+    const albumExists = await Album.findByPk(album_id);
+    if (!albumExists) {
+      response = {
+        success: false,
+        message: "Album not found",
+      };
+      res.status(404).json(response);
+      return;
+    }
+    // get all memories in the album
+    const memories = await Memory.findAll({ where: { album_id } });
+    response = {
+      success: true,
+      message: "Memories fetched successfully",
+      data: memories,
+    };
+    res.status(200).json(response);
+  })
 /**
  * get all albums via user id.
  * @method GET
