@@ -5,6 +5,7 @@ import {
   deleteCommentController,
   getCommentsOfMemoryController,
   getMemoryByCommentController,
+  getSpecificCommentController,
   updateCommentController,
 } from "../controllers/comment.controller";
 import { isOwner } from "../middleware/isOwner.middleware";
@@ -13,6 +14,9 @@ import { setEntityRequest } from "../middleware/setEntityReq.middleware";
 import { ModelTypeName } from "../Enums/common.enum";
 
 export const route = Router();
+
+// get specific comment by comment_id
+route.get("/specific/:id",authenticateToken, getSpecificCommentController)
 
 // get specific memory by comment_id
 route.get(

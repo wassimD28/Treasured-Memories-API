@@ -10,6 +10,55 @@ import Profile from "../models/profile.model";
 import { emitNotification } from "../utils/socket.util";
 
 /**
+ * get specific comment by comment_id.
+ * @method GET
+ * @route /api/comment/specific/:id
+ * @access public
+ */
+
+export const getSpecificCommentController = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const comment_id = req.params.id;
+    let response: ApiResponse;
+    // check if comment id is specified
+    if (!comment_id) {
+      response = {
+        success: false,
+        message: "Comment ID is required",
+      };
+      res.status(400).json(response);
+      return;
+    }
+    // get the comment
+    const comment = await Comment.findByPk(comment_id);
+    if (!comment) {
+      response = {
+        success: false,
+        message: `Comment with id ${comment_id} not found.`,
+      };
+      res.status(404).json(response);
+      return;
+    }
+    // get the memory of the comment
+    const memory = await Memory.findByPk(comment.memory_id);
+    if (!memory) {
+      response = {
+        success: false,
+        message: `Memory with id ${comment.memory_id} not found.`,
+      };
+      res.status(404).json(response);
+      return;
+    }
+    // return response
+    response = {
+      success: true,
+      message: "Comment retrieved successfully",
+      data: { comment, memory },
+    };
+    res.json(response);
+  }
+);
+/**
  * get specific memory by comment_id.
  * @method GET
  * @route /api/comment/memory/:id
