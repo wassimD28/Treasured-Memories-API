@@ -67,4 +67,7 @@ export default function setupAssociations() {
     foreignKey: "memory_id",
     otherKey: "album_id",
   });
+
+  AlbumMemory.belongsTo(Memory, { foreignKey: "memory_id" }); // Associate Memory
+  Memory.hasMany(AlbumMemory, { foreignKey: "memory_id" });
 }

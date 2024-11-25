@@ -3,6 +3,8 @@ import expressAsyncHandler from "express-async-handler";
 import Album from "../models/album.model";
 import { ApiResponse } from "../interfaces/common.interface";
 import Memory from "../models/memory.model";
+import AlbumMemory from "../models/albumMemory.model";
+import sequelize from "../config/database";
 
 
 /**
@@ -16,34 +18,77 @@ export const getAlbumMemoriesController = expressAsyncHandler(
   async (req: Request, res: Response) => {
     const album_id = req.params.id;
     let response: ApiResponse;
-    // check if album id is specified
-    if (!album_id) {
+
+    // Start a transaction
+    const transaction = await sequelize.transaction();
+
+    try {
+      // Check if the album exists
+      const album = await Album.findByPk(album_id, { transaction });
+      if (!album) {
+        response = {
+          success: false,
+          message: "Album not found",
+        };
+        await transaction.rollback();
+        res.status(404).json(response);
+        return;
+      }
+
+      // Fetch all albumMemory entries for the album
+      const albumMemoryEntries = await AlbumMemory.findAll({
+        where: { album_id },
+        transaction,
+      });
+
+      // Extract memory IDs from the albumMemory entries
+      const memoryIds = albumMemoryEntries.map((entry) => entry.memory_id);
+
+      // Fetch Memory records associated with the album
+      const memories = await Memory.findAll({
+        where: { id: memoryIds },
+        attributes: [
+          "id",
+          "title",
+          "description",
+          "images",
+          "likeCounter",
+          "commentCounter",
+          "user_id",
+          "location_id",
+          "createdAt",
+          "updatedAt",
+        ],
+        transaction,
+      });
+
+      // Commit the transaction
+      await transaction.commit();
+
+      // Build the response
+      response = {
+        success: true,
+        message: "Memories fetched successfully",
+        data: {
+          album_id: album.id,
+          title: album.title, // Include album name or any other fields as needed
+          memories,
+        },
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      // Rollback the transaction on error
+      await transaction.rollback();
+
       response = {
         success: false,
-        message: "Album ID is required",
+        message: "An error occurred while fetching album memories.",
       };
-      res.status(400).json(response);
-      return;
+      res.status(500).json(response);
     }
-    // check if the album exists
-    const albumExists = await Album.findByPk(album_id);
-    if (!albumExists) {
-      response = {
-        success: false,
-        message: "Album not found",
-      };
-      res.status(404).json(response);
-      return;
-    }
-    // get all memories in the album
-    const memories = await Memory.findAll({ where: { album_id } });
-    response = {
-      success: true,
-      message: "Memories fetched successfully",
-      data: memories,
-    };
-    res.status(200).json(response);
-  })
+  }
+);
 /**
  * get all albums via user id.
  * @method GET
