@@ -4,6 +4,7 @@ import multer from "multer";
 import { memoryValidation } from "../validations/memory.validation";
 import { handleValidations } from "../middleware/handleValidations.middleware";
 import {
+  checkMemoryInAlbumController,
   createMemoryController,
   deleteMemoryController,
   getMemoriesController,
@@ -72,5 +73,16 @@ route.delete(
   isOwner,
   unlinkMemoryWithAlbumController
 )
+
+// check if specific memory is linked to specific album
+route.get(
+  "/:id/album/:album_id",
+  authenticateToken,
+  setEntityRequest(ModelTypeName.MEMORY),
+  isOwner,
+  checkMemoryInAlbumController
+);
+
+
 
 export { route };

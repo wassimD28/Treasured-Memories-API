@@ -305,7 +305,7 @@ export const linkMemoryWithAlbumController = expressAsyncHandler(
 
 /**
  * unlink one specific memory with an album via memory_id and album_id
- * @method POST
+ * @method DELETE
  * @route /api/memory/:id/album/:album_id
  * @access private
  */
@@ -374,6 +374,66 @@ export const unlinkMemoryWithAlbumController = expressAsyncHandler(
     res.status(200).json(response);
   })
 
+
+/**
+ * check if specific memory is linked with an album.
+ * @method GET
+ * @route /api/album/:id/memory/:album_id
+ * @access private
+ */
+
+export const checkMemoryInAlbumController = expressAsyncHandler(
+  async (req: Request, res: Response) => {
+    const memory_id = req.params.id;
+    const album_id = req.params.album_id;
+    let response: ApiResponse;
+    // check if memory id and album id are specified
+    if (!album_id) {
+      response = {
+        success: false,
+        message: "Album id is required.",
+      };
+      res.status(400).json(response);
+      return;
+    }
+    // Check if entity exists
+    const memoryExists = await Memory.findByPk(memory_id);
+    if (!memoryExists) {
+      response = {
+        success: false,
+        message: "Memory not found.",
+      };
+      res.status(404).json(response);
+      return;
+    }
+    // check if the album exists
+    const albumExists = await Album.findByPk(album_id);
+    if (!albumExists) {
+      response = {
+        success: false,
+        message: "Album not found.",
+      };
+      res.status(404).json(response);
+      return;
+    }
+    // check if the memory belongs to the album
+    const memoryInAlbum = await AlbumMemory.findOne({
+      where: { memory_id, album_id },
+    })
+    if(!memoryInAlbum){
+      response = {
+        success: false,
+        message: "Memory is not linked with this album.",
+      };
+      res.status(400).json(response);
+      return;
+    }
+    response = {
+      success: true,
+      message: "Memory is linked with the album.",
+    };
+    res.status(200).json(response);
+  })
 export {
   getMemoriesController,
   createMemoryController,

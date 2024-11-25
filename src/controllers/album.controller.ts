@@ -180,5 +180,6 @@ export const deleteAlbumController = expressAsyncHandler(
       success: true,
       message: "Album deleted successfully",
     };
+    res.status(200).json(response);
   }
 );
